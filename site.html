@@ -19,8 +19,52 @@ html,body{margin:0;background:#020508;min-height:100%}
     try{
       const doc=frame.contentDocument;
       const style=doc.createElement('style');
-      style.textContent='.qr-card{display:none!important}';
+      style.textContent=`
+        .qr-card,.download{display:none!important}
+        .qr-cover,.download-cover{position:absolute!important;display:block!important;z-index:999!important;pointer-events:none!important;background:#020508!important}
+        .qr-cover{left:51.5%;top:0;width:21%;height:58%}
+        .download-cover{left:55%;top:61%;width:31%;height:27%}
+      `;
       doc.head.appendChild(style);
+
+      const page=doc.querySelector('.page');
+      if(page){
+        if(!page.querySelector('.qr-cover')){
+          const qrCover=doc.createElement('div');
+          qrCover.className='qr-cover';
+          page.appendChild(qrCover);
+        }
+        if(!page.querySelector('.download-cover')){
+          const downloadCover=doc.createElement('div');
+          downloadCover.className='download-cover';
+          page.appendChild(downloadCover);
+        }
+      }
+
+      const copy=document.querySelector('.copy');
+      const share=document.querySelector('.share');
+      const bind=()=>{
+        const target=doc.querySelector('.copy');
+        const shareTarget=doc.querySelector('.share');
+        const url='https://goldmahdi77.github.io/mahdi-gold-groups/';
+        if(target){
+          target.onclick=async function(e){
+            e.preventDefault();
+            try{await navigator.clipboard.writeText(url);}catch(_){
+              const t=doc.createElement('textarea');t.value=url;doc.body.appendChild(t);t.select();doc.execCommand('copy');t.remove();
+            }
+          };
+        }
+        if(shareTarget){
+          shareTarget.onclick=async function(e){
+            e.preventDefault();
+            if(navigator.share){try{await navigator.share({title:'طلای مهدی (عج)',url});}catch(_){} }
+            else {try{await navigator.clipboard.writeText(url);}catch(_){} }
+          };
+        }
+      };
+      bind();
+
       const resize=()=>{
         frame.style.height=Math.max(doc.documentElement.scrollHeight,doc.body.scrollHeight)+'px';
       };
