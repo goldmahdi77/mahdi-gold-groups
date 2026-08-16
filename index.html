@@ -10,6 +10,58 @@
 </style>
 </head>
 <body>
-<iframe class="site-frame" src="site.html" title="سایت طلای مهدی (عج)"></iframe>
+<iframe id="siteFrame" class="site-frame" src="site.html" title="سایت طلای مهدی (عج)"></iframe>
+<script>
+(function(){
+  const SITE_URL='https://goldmahdi77.github.io/mahdi-gold-groups/';
+  const frame=document.getElementById('siteFrame');
+  function textOf(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim();}
+  function findByText(doc, words){
+    const all=doc.querySelectorAll('button,a,[role="button"],div,span,p,h1,h2,h3,h4,h5');
+    for(const el of all){const t=textOf(el); if(words.some(w=>t.includes(w)) && t.length<120) return el;}
+    return null;
+  }
+  function hideQr(doc){
+    const title=findByText(doc,['QR کد دقیق سایت','QR Code','QR code']);
+    if(!title) return;
+    let node=title;
+    for(let i=0;i<6 && node.parentElement;i++){
+      node=node.parentElement;
+      const t=textOf(node);
+      const cs=doc.defaultView.getComputedStyle(node);
+      if(t.includes('QR') && (cs.borderStyle!=='none' || cs.borderWidth!=='0px' || node.querySelector('img,canvas,svg'))){
+        node.style.display='none';
+        return;
+      }
+    }
+    if(title.parentElement) title.parentElement.style.display='none';
+  }
+  function setup(){
+    try{
+      const doc=frame.contentDocument;
+      if(!doc) return;
+      hideQr(doc);
+      const copy=findByText(doc,['کپی لینک']);
+      const share=findByText(doc,['اشتراک گذاری','اشتراک‌گذاری']);
+      if(copy){
+        copy.onclick=function(e){
+          e.preventDefault();
+          if(navigator.clipboard) navigator.clipboard.writeText(SITE_URL).catch(()=>{});
+        };
+        copy.setAttribute('title','کپی لینک همین سایت');
+      }
+      if(share){
+        share.onclick=function(e){
+          e.preventDefault();
+          if(navigator.share) navigator.share({title:'طلای مهدی (عج)',url:SITE_URL}).catch(()=>{});
+          else if(navigator.clipboard) navigator.clipboard.writeText(SITE_URL).catch(()=>{});
+        };
+        share.setAttribute('title','اشتراک‌گذاری همین سایت');
+      }
+    }catch(e){}
+  }
+  frame.addEventListener('load',()=>{setup();setTimeout(setup,500);setTimeout(setup,1500);});
+})();
+</script>
 </body>
 </html>
