@@ -14,66 +14,74 @@ html,body{margin:0;background:#020508;min-height:100%}
 <iframe id="site" src="mahdi-gold-groups-fixed(6).html" title="سایت طلای مهدی (عج)"></iframe>
 <script>
 (function(){
+  const SITE_URL='https://goldmahdi77.github.io/mahdi-gold-groups/';
   const frame=document.getElementById('site');
-  frame.addEventListener('load',function(){
-    try{
-      const doc=frame.contentDocument;
-      const style=doc.createElement('style');
-      style.textContent=`
-        .qr-card,.download{display:none!important}
-        .qr-cover,.download-cover{position:absolute!important;display:block!important;z-index:999!important;pointer-events:none!important;background:#020508!important}
-        .qr-cover{left:51.5%;top:0;width:21%;height:58%}
-        .download-cover{left:55%;top:61%;width:31%;height:27%}
-      `;
-      doc.head.appendChild(style);
+  function txt(el){return (el?.textContent||'').replace(/\s+/g,' ').trim();}
+  function findText(doc, words){
+    for(const el of doc.querySelectorAll('button,a,[role="button"],div,span,p,h1,h2,h3,h4,h5')){
+      const t=txt(el);
+      if(t && t.length<100 && words.some(w=>t.includes(w))) return el;
+    }
+    return null;
+  }
+  function edit(doc){
+    if(!doc) return;
 
-      const page=doc.querySelector('.page');
-      if(page){
-        if(!page.querySelector('.qr-cover')){
-          const qrCover=doc.createElement('div');
-          qrCover.className='qr-cover';
-          page.appendChild(qrCover);
-        }
-        if(!page.querySelector('.download-cover')){
-          const downloadCover=doc.createElement('div');
-          downloadCover.className='download-cover';
-          page.appendChild(downloadCover);
+    // فقط کادر QR پایین صفحه را حذف کن.
+    const title=findText(doc,['QR کد دقیق سایت']);
+    if(title){
+      let box=title;
+      for(let i=0;i<10 && box.parentElement;i++){
+        box=box.parentElement;
+        const t=txt(box);
+        if(t.includes('QR کد دقیق سایت') && (box.querySelector('canvas,img,svg') || getComputedStyle(box).borderWidth!=='0px' || getComputedStyle(box).padding!=='0px')){
+          box.style.display='none';
+          break;
         }
       }
-
-      const copy=document.querySelector('.copy');
-      const share=document.querySelector('.share');
-      const bind=()=>{
-        const target=doc.querySelector('.copy');
-        const shareTarget=doc.querySelector('.share');
-        const url='https://goldmahdi77.github.io/mahdi-gold-groups/';
-        if(target){
-          target.onclick=async function(e){
-            e.preventDefault();
-            try{await navigator.clipboard.writeText(url);}catch(_){
-              const t=doc.createElement('textarea');t.value=url;doc.body.appendChild(t);t.select();doc.execCommand('copy');t.remove();
-            }
-          };
-        }
-        if(shareTarget){
-          shareTarget.onclick=async function(e){
-            e.preventDefault();
-            if(navigator.share){try{await navigator.share({title:'طلای مهدی (عج)',url});}catch(_){} }
-            else {try{await navigator.clipboard.writeText(url);}catch(_){} }
-          };
-        }
-      };
-      bind();
-
-      const resize=()=>{
-        frame.style.height=Math.max(doc.documentElement.scrollHeight,doc.body.scrollHeight)+'px';
-      };
-      resize();
-      setTimeout(resize,100);
-      setTimeout(resize,500);
-    }catch(e){
-      frame.style.height='min(94vh,980px)';
     }
+
+    // دکمه دانلود QR حذف شود؛ دو دکمه کپی لینک و اشتراک‌گذاری باقی بمانند.
+    const dl=findText(doc,['دانلود QR Code','دانلود QR code','دانلود QR']);
+    if(dl){
+      let b=dl;
+      for(let i=0;i<5 && b.parentElement;i++){
+        if(b.tagName==='BUTTON'||b.tagName==='A'||b.getAttribute('role')==='button') { b.style.display='none'; break; }
+        const p=b.parentElement;
+        if(p.querySelectorAll('button,a,[role="button"]').length>=2){ b.style.display='none'; break; }
+        b=p;
+      }
+    }
+
+    const copy=findText(doc,['کپی لینک']);
+    if(copy){
+      copy.onclick=async e=>{
+        e.preventDefault();
+        try{await navigator.clipboard.writeText(SITE_URL);}catch(_){
+          const ta=doc.createElement('textarea');ta.value=SITE_URL;doc.body.appendChild(ta);ta.select();doc.execCommand('copy');ta.remove();
+        }
+      };
+    }
+
+    const share=findText(doc,['اشتراک گذاری','اشتراک‌گذاری']);
+    if(share){
+      share.onclick=async e=>{
+        e.preventDefault();
+        if(navigator.share){try{await navigator.share({title:'طلای مهدی (عج)',url:SITE_URL});}catch(_){} }
+        else {try{await navigator.clipboard.writeText(SITE_URL);}catch(_){} }
+      };
+    }
+
+    frame.style.height=Math.max(doc.documentElement.scrollHeight,doc.body.scrollHeight)+'px';
+  }
+  frame.addEventListener('load',()=>{
+    try{
+      const doc=frame.contentDocument;
+      edit(doc);
+      setTimeout(()=>edit(doc),300);
+      setTimeout(()=>edit(doc),1000);
+      setTimeout(()=>edit(doc),2000);
+    }catch(e){frame.style.height='min(94vh,980px)';}
   });
 })();
 </script>
